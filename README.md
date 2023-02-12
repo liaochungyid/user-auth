@@ -11,4 +11,4 @@ This repo is not finished yet.
 
 ## Database Structure
 
-![image](https://github.com/yulaie1012/twitter-fullstack-2020/blob/master/public/images/cover.png)
+![image](https://github.com/liaochungyid/user-auth/blob/main/userAuthERD.png)
