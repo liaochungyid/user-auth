@@ -1,0 +1,105 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider = "prisma-client-js"
+    output = "../node_modules/.prisma/client"
+}
+
+datasource db {
+    provider = "mysql"
+    url      = env("DATABASE_URL")
+}
+
+model userAccounts {
+  id                      Int                    @id @default(autoincrement())
+  firstName               String?
+  lastName                String?
+  gender                  String?                @db.VarChar(1)
+  dateOfBirth             DateTime?              @db.Date
+  email                   String                 @unique @db.VarChar(255)
+  emailValidationStatusId Int
+  emailValidationStatus   emailValidationStatus  @relation(fields: [emailValidationStatusId], references: [id])
+  userLoginData           userLoginData?
+  userLoginDataExternal   userLoginDataExternal?
+  roles                   roles[]
+  createdAt               DateTime               @default(now())
+  updatedAt               DateTime               @updatedAt
+  deletedAt               DateTime?
+}
+
+model userLoginData {
+  id                        Int          @id @default(autoincrement())
+  passwordHash              String       @db.VarChar(255)
+  passwordSalt              String       @db.VarChar(255)
+  passwordRound             Int          @default(10)
+  userAccountId             Int          @unique
+  userAccount               userAccounts @relation(fields: [userAccountId], references: [id])
+  hashingAlgoId             Int          @unique
+  hashingAlgo               hashingAlgos @relation(fields: [hashingAlgoId], references: [id])
+  comfirmationToken         String?
+  comfirmationGeneratedTime DateTime?
+  recoveryToken             String?
+  recoveryGeneratedTime     DateTime?
+  createdAt                 DateTime     @default(now())
+  updatedAt                 DateTime     @updatedAt
+  deletedAt                 DateTime?
+}
+
+model hashingAlgos {
+  id            Int             @id @default(autoincrement())
+  algoName      String          @db.VarChar(20)
+  userLoginData userLoginData[]
+  createdAt     DateTime        @default(now())
+  deletedAt     DateTime?
+}
+
+model emailValidationStatus {
+  id          Int            @id @default(autoincrement())
+  status      String         @db.VarChar(20)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  deletedAt   DateTime?
+  userAccount userAccounts[]
+}
+
+model userLoginDataExternal {
+  id                    Int               @id @default(autoincrement())
+  externalProviderToken String
+  externalProviderId    Int
+  externalProvider      externalProviders @relation(fields: [externalProviderId], references: [id])
+  userAccountId         Int               @unique
+  userAccount           userAccounts      @relation(fields: [userAccountId], references: [id])
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  deletedAt             DateTime?
+}
+
+model externalProviders {
+  id                    Int                     @id @default(autoincrement())
+  providerName          String                  @db.VarChar(50)
+  wsEndPoint            String                  @db.VarChar(200)
+  userLoginDataExternal userLoginDataExternal[]
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  deletedAt             DateTime?
+}
+
+model roles {
+  id           Int            @id @default(autoincrement())
+  name         String         @unique @db.VarChar(20)
+  permissions  permissions[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  deletedAt    DateTime?
+  userAccounts userAccounts[]
+}
+
+model permissions {
+  id        Int       @id @default(autoincrement())
+  action    String    @db.VarChar(50)
+  roles     roles[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
